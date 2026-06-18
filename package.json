@@ -1,7 +1,7 @@
 {
   "name": "iot-visualization",
   "version": "1.0.0",
-  "description": "物联网数据可视化工具",
+  "description": "自制IOT物联网显示面板",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
