@@ -1,12 +1,37 @@
-# 自制IOT物联网显示面板 (iot-visualization)
+# 自制IOT物联网显示面板
 
-基于 **Vue 3** + **Electron** + **TypeScript** 开发的物联网数据可视化面板工具，**仅支持 Windows 系统**。
+<div align="center">
+
+一个基于 **Vue 3** + **Electron** 开发的物联网数据可视化工具
+
+</div>
+
+---
+
+## 说明
+
+### 所用技术栈
+
+- Vue 3
+- Electron 28+
+- TypeScript
+- Chart.js
+- MQTT.js
+- Vite
+
+### 已支持的平台
+
+- Windows 10 及以上
+
+---
 
 ## 项目简介
 
 本项目以 Mind+ 可视化面板中的组件为灵感，对组件内部配置进行了优化，相比于 Mind+ 原有版本更具扩展性和实用性。
 
 ![项目截图](screenshot-1781793382540.png)
+
+---
 
 ## 注意事项
 
@@ -36,14 +61,7 @@
 
 5. **已知问题**：滑动条组件存在问题暂未修复（虽然可能也不怎么用）
 
-## 技术栈
-
-- **Vue 3** - 前端框架
-- **Electron** - 桌面应用框架
-- **TypeScript** - 类型安全
-- **Chart.js** - 图表库
-- **MQTT.js** - MQTT 协议支持
-- **Vite** - 构建工具
+---
 
 ## 开发命令
 
@@ -63,6 +81,8 @@ npm run electron:start
 # 打包 Electron 应用
 npm run electron:build
 ```
+
+---
 
 ## 许可证
 
