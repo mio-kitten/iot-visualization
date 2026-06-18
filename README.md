@@ -1,6 +1,6 @@
-# 自制IOT物联网显示面板
-
 <div align="center">
+
+# 自制IOT物联网显示面板
 
 [![version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/mio-kitten/iot-visualization)
 [![platform](https://img.shields.io/badge/platform-Windows%207%2B-green)](https://github.com/mio-kitten/iot-visualization)
@@ -29,7 +29,9 @@
 
 本项目以 Mind+ 可视化面板中的组件为灵感，对组件内部配置进行了优化，相比于 Mind+ 原有版本更具扩展性和实用性。
 
-![项目截图](screenshot-1781793382540.png)
+### 项目管理界面
+
+![项目管理界面](screenshot-1781793382540.png)
 
 ---
 
@@ -57,7 +59,9 @@
    - SwitchWidget（开关）
    - TextWidget（文本）
 
-   ![组件展示](screenshot-1781793224435.png)
+### 编辑界面
+
+![编辑界面](screenshot-1781793224435.png)
 
 5. **已知问题**：滑动条组件存在问题暂未修复（虽然可能也不怎么用）
 
@@ -81,6 +85,30 @@ npm run electron:start
 # 打包 Electron 应用
 npm run electron:build
 ```
+
+---
+
+## 使用限制
+
+### 6.1
+本项目完全免费，且开源发布于 GitHub 面向全世界人用作对技术的学习交流。本项目不对项目内的技术可能存在违反当地法律法规的行为作保证。
+
+### 6.2
+禁止在违反当地法律法规的情况下使用本项目。对于使用者在明知或不知当地法律法规不允许的情况下使用本项目所造成的任何违法违规行为由使用者承担，本项目不承担由此造成的任何直接、间接、特殊、偶然或结果性责任。
+
+---
+
+## 非商业性质
+
+### 8.1
+本项目仅用于对技术可行性的探索及研究，不接受任何商业（包括但不限于广告等）合作及捐赠。
+
+---
+
+## 接受协议
+
+### 9.1
+若你使用了本项目，即代表你接受本协议。
 
 ---
 
