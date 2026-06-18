@@ -42,22 +42,22 @@
 **1.** 本仓库包含所有程序源码，并未进行打包处理（如果将来有机会会压缩成 ZIP）
 
 **2.** 运行方式：
-   - **①** 直接下载本项目所有文件并放在任意文件夹
-   - **②** 点击 `检查安装依赖.bat`，程序会自动调用文件夹中的 Node.js 安装包进行安装
-   - **③** 如果安装失败，请手动运行 `node-v24.16.0-x64.msi` 安装包
-   - **④** 安装完成后，不要再点击"检查安装依赖"，直接运行 `一键启动.bat`
+   - 直接下载本项目所有文件并放在任意文件夹
+   - 点击 `检查安装依赖.bat`，程序会自动调用文件夹中的 Node.js 安装包进行安装
+   - 如果安装失败，请手动运行 `node-v24.16.0-x64.msi` 安装包
+   - 安装完成后，不要再点击"检查安装依赖"，直接运行 `一键启动.bat`
 
 **3.** 环境要求：本项目基于 Vue 与 Node.js 开发，需要网页环境支持
 
 **4.** 组件支持：能力有限，目前仅实现了 9 个组件：
-   - **①** BarChartWidget（柱状图）
-   - **②** ButtonWidget（按钮）
-   - **③** InputWidget（输入框）
-   - **④** LineChartWidget（折线图）
-   - **⑤** MiniAreaWidget（迷你面积图）
-   - **⑥** SliderWidget（滑动条）
-   - **⑦** SwitchWidget（开关）
-   - **⑧** TextWidget（文本）
+   - BarChartWidget（柱状图）
+   - ButtonWidget（按钮）
+   - InputWidget（输入框）
+   - LineChartWidget（折线图）
+   - MiniAreaWidget（迷你面积图）
+   - SliderWidget（滑动条）
+   - SwitchWidget（开关）
+   - TextWidget（文本）
 
 ### 编辑界面
 
