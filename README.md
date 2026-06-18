@@ -2,6 +2,12 @@
 
 <div align="center">
 
+[![version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/mio-kitten/iot-visualization)
+[![platform](https://img.shields.io/badge/platform-Windows%207%2B-green)](https://github.com/mio-kitten/iot-visualization)
+[![tech](https://img.shields.io/badge/tech-Vue%203-orange)](https://vuejs.org/)
+[![tech](https://img.shields.io/badge/tech-Electron%2028+-purple)](https://www.electronjs.org/)
+[![tech](https://img.shields.io/badge/tech-TypeScript-blue)](https://www.typescriptlang.org/)
+
 一个基于 **Vue 3** + **Electron** 开发的物联网数据可视化工具
 
 </div>
@@ -10,18 +16,12 @@
 
 ## 说明
 
-### 所用技术栈
-
-- Vue 3
-- Electron 28+
-- TypeScript
-- Chart.js
-- MQTT.js
-- Vite
-
-### 已支持的平台
-
-- Windows 10 及以上
+| 项目 | 详情 |
+| --- | --- |
+| **所用技术栈** | Vue 3、Electron 28+、TypeScript、Chart.js、MQTT.js、Vite |
+| **已支持的平台** | Windows 7 及以上 |
+| **组件数量** | 9 个 |
+| **状态** | 开发中 |
 
 ---
 
