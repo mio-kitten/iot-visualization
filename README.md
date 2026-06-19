@@ -98,9 +98,8 @@ npm run electron:build
 
 ### 用123云盘下载：
 
-> 『来自123云盘用户的分享』GitHub
-> > 链接：[https://1842972489.share.123pan.cn/123pan/SJqUTd-e7Cl3?pwd=NOTH#](https://1842972489.share.123pan.cn/123pan/SJqUTd-e7Cl3?pwd=NOTH#)
-> > 提取码：NOTH
+[123云盘/用户：NORTH](`https://1842972489.share.123pan.cn/123pan/SJqUTd-e7Cl3?pwd=NOTH#`)
+> 提取码：NOTH
 
 ---
 
