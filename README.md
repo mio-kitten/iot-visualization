@@ -23,14 +23,14 @@
 | **组件数量** | 9 个 |
 | **状态** | 开发中 |
 
-#下载方式：GitHub Releases 中下载 ZIP
+# 下载方式：GitHub Releases 中下载 ZIP
 
-或
+#### 或
 
-## 用123云盘下载：
+### 用123云盘下载：
 
 > 『来自123云盘用户的分享』GitHub
-> > 链接：`https://1842972489.share.123pan.cn/123pan/SJqUTd-e7Cl3?pwd=NOTH#`
+> > 链接：`` https://1842972489.share.123pan.cn/123pan/SJqUTd-e7Cl3?pwd=NOTH# ``
 > > 提取码：NOTH
 
 ---
