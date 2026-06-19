@@ -3,7 +3,7 @@
 # 自制IOT物联网显示面板（iot-visualization）
 
 [![version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/mio-kitten/iot-visualization)
-[![platform](https://img.shields.io/badge/platform-Windows%207%2B-green)](https://github.com/mio-kitten/iot-visualization)
+[![platform](https://img.shields.io/badge/platform-Windows%2010%2B-green)](https://github.com/mio-kitten/iot-visualization)
 [![tech](https://img.shields.io/badge/tech-Vue%203-orange)](https://vuejs.org/)
 [![tech](https://img.shields.io/badge/tech-Electron%2028+-purple)](https://www.electronjs.org/)
 [![tech](https://img.shields.io/badge/tech-TypeScript-blue)](https://www.typescriptlang.org/)
@@ -19,7 +19,7 @@
 | 项目 | 详情 |
 | --- | --- |
 | **所用技术栈** | Vue 3、Electron 28+、TypeScript、Chart.js、MQTT.js、Vite |
-| **已支持的平台** | Windows 7 及以上 |
+| **已支持的平台** | Windows 10 及以上 |
 | **组件数量** | 9 个 |
 | **状态** | 开发中 |
 
@@ -45,11 +45,11 @@
 
 **2.** 运行方式：
    - 直接下载本项目所有文件并放在任意文件夹
-   - 点击 `检查安装依赖.bat`，程序会自动调用文件夹中的 Node.js 安装包进行安装
-   - 如果安装失败，请手动运行 `node-v24.16.0-x64.msi` 安装包
+   - 点击 `检查安装依赖.bat`，程序会自动检查本机使用架构并调用文件夹中对应的 Node.js 安装包进行安装
+   - 如果安装失败，按照本机系统的架构选择运行 `node-v24.16.0-x64.msi` 或 `node-v24.17.0-arm64.msi` 安装包
    - 安装完成后，不要再点击"检查安装依赖"，直接运行 `一键启动.bat`
 
-**3.** 环境要求：本项目基于 Vue 与 Node.js 开发，需要网页环境支持
+**3.** 环境要求：本项目基于 Vue 与 Node.js 开发，需要网页环境支持；且因为 Node.js v24 需要 Windows 10 或更高版本 且无 X86 版本的安装包（32位），本项目理应只支持 Windows 10 以上 X64 版本
 
 **4.** 组件支持：能力有限，目前仅实现了 9 个组件：
    - BarChartWidget（柱状图）
