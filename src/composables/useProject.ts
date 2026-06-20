@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import type { Project, Widget, PlatformConfig, LineChartWidgetConfig } from '@/types';
+import { getWidgetMinSize } from '@/utils/widgetMinSize';
 
 const projects = ref<Project[]>([]);
 const currentProjectId = ref<string | null>(null);
@@ -85,7 +86,15 @@ export function useProject() {
     if (project) {
       const widget = project.widgets.find(w => w.id === widgetId);
       if (widget) {
-        widget.config = { ...widget.config, ...updates };
+        const min = getWidgetMinSize(widget.type);
+        const clamped: Record<string, unknown> = { ...updates };
+        if (typeof clamped.width === 'number') {
+          clamped.width = Math.max(min.width, clamped.width as number);
+        }
+        if (typeof clamped.height === 'number') {
+          clamped.height = Math.max(min.height, clamped.height as number);
+        }
+        widget.config = { ...widget.config, ...clamped };
         project.updatedAt = new Date().toISOString();
         saveProjects();
       }
@@ -267,6 +276,8 @@ export function useProject() {
       x,
       y,
       textColor: '#333333',
+      displayMode: 'multiTopic',
+      topic: '',
       themes: [
         { id: 'theme-1', name: '主题1', topic: '', color: '#5c9ce6' },
         { id: 'theme-2', name: '主题2', topic: '', color: '#66bb6a' },

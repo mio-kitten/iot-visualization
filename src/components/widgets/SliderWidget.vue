@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, inject } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 
 const props = defineProps<{
   config: {
@@ -8,6 +8,7 @@ const props = defineProps<{
     step?: number
     topic?: string
   }
+  data?: Map<string, unknown>
 }>()
 
 const emit = defineEmits<{
@@ -16,11 +17,15 @@ const emit = defineEmits<{
 
 const sendMessage = inject<(topic: string, message: string) => void>('sendMessage')
 
-const minValue = Number(props.config.minValue) || 0
-const maxValue = Number(props.config.maxValue) || 100
-const step = Number(props.config.step) || 1
+/** 响应式获取步长/最值，跟随侧边栏配置变化 */
+const minValue = computed(() => Number(props.config.minValue) || 0)
+const maxValue = computed(() => {
+  const v = Number(props.config.maxValue)
+  return (v && v > minValue.value) ? v : (minValue.value + 100)
+})
+const step = computed(() => Number(props.config.step) || 1)
 
-const value = ref((minValue + maxValue) / 2)
+const value = ref((minValue.value + maxValue.value) / 2)
 const isDragging = ref(false)
 
 const handleInput = (event: Event) => {
@@ -44,11 +49,20 @@ const handleMouseUp = () => {
   handleChange()
 }
 
-watch(() => props.config, (newConfig) => {
-  const newMin = Number(newConfig.minValue) || 0
-  const newMax = Number(newConfig.maxValue) || 100
-  value.value = Math.max(newMin, Math.min(value.value, newMax))
-}, { deep: true })
+/** 从侧边栏快速设定值 */
+watch(() => (props.config as any).jumpValue, (val) => {
+  if (val !== undefined && val !== null) {
+    const num = Number(val)
+    if (!isNaN(num)) {
+      value.value = Math.max(minValue.value, Math.min(maxValue.value, num))
+    }
+  }
+})
+
+/** 清空数据时滑块归中（通过配置 _reset 字段通知） */
+watch(() => (props.config as any)._reset, () => {
+  value.value = (minValue.value + maxValue.value) / 2
+})
 </script>
 
 <template>
@@ -63,9 +77,9 @@ watch(() => props.config, (newConfig) => {
       class="slider-input"
       @input="handleInput"
       @change="handleChange"
-      @mousedown="handleMouseDown"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseUp"
+      @mousedown.stop="handleMouseDown"
+      @mouseup.stop="handleMouseUp"
+      @mouseleave.stop="handleMouseUp"
     />
     <div class="slider-labels">
       <span>{{ minValue }}</span>

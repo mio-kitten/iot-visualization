@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Widget, ThemeConfig, DataPoint } from '@/types';
+import { getWidgetMinSize } from '@/utils/widgetMinSize';
 
 const props = defineProps<{
   widget: Widget | undefined;
@@ -29,6 +30,10 @@ const getTopic = (config: unknown) => {
 }
 
 const handleUpdateDisplayMode = (value: string) => {
+  emit('update', { displayMode: value as 'multiTopic' | 'singleTopic' })
+}
+
+const handleUpdateTextareaDisplayMode = (value: string) => {
   emit('update', { displayMode: value as 'multiTopic' | 'singleTopic' })
 }
 
@@ -108,8 +113,10 @@ const textConfig = computed(() => {
   return props.widget.config as {
     title: string;
     width: number;
+    height: number;
     textColor: string;
     topic?: string;
+    displayMode?: 'multiTopic' | 'singleTopic';
     themes?: ThemeConfig[];
   };
 });
@@ -119,11 +126,13 @@ const handleUpdateTitle = (value: string) => {
 };
 
 const handleUpdateWidth = (value: number) => {
-  emit('update', { width: value });
+  const min = props.widget ? getWidgetMinSize(props.widget.type).width : 100
+  emit('update', { width: Math.max(min, value) });
 };
 
 const handleUpdateHeight = (value: number) => {
-  emit('update', { height: value });
+  const min = props.widget ? getWidgetMinSize(props.widget.type).height : 60
+  emit('update', { height: Math.max(min, value) });
 };
 
 const handleUpdateMaxDataPoints = (value: number) => {
@@ -219,6 +228,16 @@ const handleUpdateMaxValue = (value: number) => {
 const handleUpdateStep = (value: number) => {
   emit('update', { step: value });
 };
+
+const jumpInput = ref('')
+
+const handleJumpValue = () => {
+  const val = parseFloat(jumpInput.value)
+  if (!isNaN(val)) {
+    emit('update', { jumpValue: val })
+  }
+  jumpInput.value = ''
+}
 
 const barChartConfig = computed(() => {
   if (!props.widget || props.widget.type !== 'barChart')
@@ -913,6 +932,21 @@ const handleUpdateUnit = (value: string) => {
           </div>
         </div>
         
+        <div class="config-section">
+          <div class="section-header">快速设定</div>
+          <div class="config-item">
+            <label>设定值</label>
+            <input
+              v-model="jumpInput"
+              @keyup.enter="handleJumpValue"
+              @blur="handleJumpValue"
+              type="number"
+              placeholder="输入值后回车"
+              class="config-input"
+            />
+          </div>
+        </div>
+        
         <div class="info-section">
           <div class="info-header">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e88e5" stroke-width="2">
@@ -1022,6 +1056,35 @@ const handleUpdateUnit = (value: string) => {
         </div>
 
         <div class="config-section">
+          <div class="section-header">显示模式</div>
+          
+          <div class="config-item">
+            <select
+              :value="textConfig?.displayMode || 'multiTopic'"
+              @change="handleUpdateTextareaDisplayMode(inputValue($event))"
+              class="config-input"
+            >
+              <option value="multiTopic">多主题模式</option>
+              <option value="singleTopic">单主题多数据模式</option>
+            </select>
+          </div>
+        </div>
+        
+        <div v-if="textConfig?.displayMode === 'singleTopic'" class="config-section">
+          <div class="section-header">数据</div>
+          <div class="config-item">
+            <label>Topic</label>
+            <input
+              :value="textConfig?.topic"
+              @input="emit('update', { topic: inputValue($event) })"
+              type="text"
+              class="config-input"
+              placeholder="请输入Topic名称"
+            />
+          </div>
+        </div>
+        
+        <div class="config-section">
           <div class="section-header">主题配置</div>
           <div class="theme-list">
             <div
@@ -1059,6 +1122,7 @@ const handleUpdateUnit = (value: string) => {
                 </button>
               </div>
               <input
+                v-if="textConfig?.displayMode === 'multiTopic'"
                 :value="theme.topic"
                 @input="handleUpdateTheme(index, { topic: inputValue($event) })"
                 type="text"
@@ -1080,14 +1144,39 @@ const handleUpdateUnit = (value: string) => {
         
         <div class="info-section">
           <div class="info-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <span>发送格式说明</span>
+          </div>
+          <div class="info-content">
+            <p v-if="textConfig?.displayMode === 'multiTopic'">
+              多主题模式: 每个主题对应一个Topic<br/>
+              发送格式: <code>数值</code><br/>
+              例: <code>温度1</code> 或 <code>23.5</code>
+            </p>
+            <p v-else>
+              单主题多数据模式: 一个Topic包含多个数据<br/>
+              发送格式: <code>数据1/数据2/数据3...</code><br/>
+              例: <code>温度1/温度2/温度3</code>
+            </p>
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <div class="info-header">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e88e5" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 16v-4M12 8h.01"/>
             </svg>
-            <span>说明</span>
+            <span>组件说明</span>
           </div>
           <div class="info-content">
-            <p>显示多个Topic接收到的消息</p>
+            <p>
+              显示指定Topic接收到的消息.<br/>
+              多主题模式每个主题独立Topic,单主题模式通过"/"分隔.
+            </p>
           </div>
         </div>
       </template>

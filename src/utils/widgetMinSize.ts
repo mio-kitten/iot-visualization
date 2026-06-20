@@ -1,0 +1,19 @@
+export interface MinSize {
+  width: number
+  height: number
+}
+
+export const getWidgetMinSize = (type: string): MinSize => {
+  switch (type) {
+    case 'lineChart':
+    case 'barChart':    return { width: 200, height: 150 }
+    case 'miniArea':    return { width: 150, height: 100 }
+    case 'textarea':    return { width: 150, height: 100 }
+    case 'gauge':       return { width: 120, height: 120 }
+    case 'text':
+    case 'lable':       return { width: 150, height: 80 }
+    case 'button':      return { width: 150, height: 110 }
+    case 'input':       return { width: 200, height: 80 }
+    default:            return { width: 120, height: 80 }
+  }
+}

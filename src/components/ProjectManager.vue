@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Project } from '../types'
 
-defineProps<{
+const props = defineProps<{
   projects: Project[]
 }>()
 
@@ -17,12 +17,27 @@ const showCreateModal = ref(false)
 const newProjectName = ref('')
 const deleteConfirmProjectId = ref<string | null>(null)
 
+/** 检查当前输入的项目名称是否已存在（忽略大小写） */
+const nameConflict = computed(() => {
+  const name = newProjectName.value.trim()
+  if (!name) return null
+  const found = props.projects.find(
+    p => p.name.toLowerCase() === name.toLowerCase()
+  )
+  return found || null
+})
+
 const handleCreate = () => {
-  if (newProjectName.value.trim()) {
-    emit('create', newProjectName.value.trim())
-    newProjectName.value = ''
-    showCreateModal.value = false
-  }
+  const name = newProjectName.value.trim()
+  if (!name || nameConflict.value) return
+  emit('create', name)
+  newProjectName.value = ''
+  showCreateModal.value = false
+}
+
+const openCreateModal = () => {
+  newProjectName.value = ''
+  showCreateModal.value = true
 }
 
 const formatDate = (dateStr: string) => {
@@ -59,7 +74,7 @@ const cancelDelete = () => {
   <div class="project-manager">
     <div class="project-list-container">
       <div class="pm-header">
-        <button class="new-project-btn" @click="showCreateModal = true">
+        <button class="new-project-btn" @click="openCreateModal">
           <span class="plus-icon">+</span>
           <span>新建项目</span>
         </button>
@@ -109,12 +124,14 @@ const cancelDelete = () => {
               type="text"
               placeholder="请输入项目名称"
               @keyup.enter="handleCreate"
+              :class="{ 'input-error': nameConflict }"
             />
+            <p v-if="nameConflict" class="error-text">已存在同名项目「{{ nameConflict.name }}」，请换一个名称</p>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="showCreateModal = false">取消</button>
-          <button class="btn btn-success" @click="handleCreate">创建</button>
+          <button class="btn btn-success" :disabled="!newProjectName.trim() || !!nameConflict" @click="handleCreate">创建</button>
         </div>
       </div>
     </div>
@@ -364,6 +381,12 @@ const cancelDelete = () => {
   color: #fff;
 }
 
+.btn-success:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .btn-danger {
   background-color: #ef5350;
   color: #fff;
@@ -398,6 +421,20 @@ const cancelDelete = () => {
 .config-item input:focus {
   outline: none;
   border-color: #5c9ce6;
+}
+
+.config-item input.input-error {
+  border-color: #ef5350;
+}
+
+.config-item input.input-error:focus {
+  border-color: #ef5350;
+}
+
+.error-text {
+  color: #ef5350;
+  font-size: 12px;
+  margin-top: 6px;
 }
 
 .pm-header {

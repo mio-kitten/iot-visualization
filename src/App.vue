@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide, onUnmounted, computed, watch } from 'vue'
+import { ref, provide, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useProject } from './composables/useProject'
 import { MqttClientWrapper } from './utils/mqttClient'
 import type { PlatformConfig, DataPoint, Widget, Project } from './types'
@@ -10,6 +10,7 @@ import SidebarRight from './components/SidebarRight.vue'
 import PlatformConfigModal from './components/PlatformConfigModal.vue'
 import ProjectManager from './components/ProjectManager.vue'
 import TopBar from './components/TopBar.vue'
+import { APP_VERSION } from './version'
 
 const {
   projects,
@@ -39,6 +40,7 @@ const mqttClient = new MqttClientWrapper()
 
 const isFullscreen = ref(false)
 const showTopBar = ref(false)
+const scrollWrapperRef = ref<HTMLElement | null>(null)
 let topBarTimeout: number | null = null
 
 const handleFullscreenChange = () => {
@@ -49,6 +51,47 @@ const handleFullscreenChange = () => {
 }
 
 document.addEventListener('fullscreenchange', handleFullscreenChange)
+
+/** 进入全屏前保存编辑模式的视口中心（画布坐标） */
+const savedViewCenter = ref<{ x: number; y: number } | null>(null)
+
+/** 全屏（查看模式）时保持与编辑模式相同的视口中心 */
+watch(isFullscreen, async (val) => {
+  if (val && scrollWrapperRef.value) {
+    await nextTick()
+    const wrap = scrollWrapperRef.value
+    
+    if (savedViewCenter.value) {
+      // 使用进入全屏前保存的视口中心，避免因侧边栏隐藏导致内容偏移
+      wrap.scrollLeft = Math.max(0, savedViewCenter.value.x - wrap.clientWidth / 2)
+      wrap.scrollTop = Math.max(0, savedViewCenter.value.y - wrap.clientHeight / 2)
+      savedViewCenter.value = null
+    } else if (currentProject.value) {
+      // 降级：从组件群计算中心（首次进入等无保存记录的情况）
+      const widgets = currentProject.value.widgets
+      if (widgets.length === 0) return
+      
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      widgets.forEach(w => {
+        const cfg = w.config as { x: number; y: number; width: number; height: number }
+        if (cfg.x !== undefined) {
+          minX = Math.min(minX, cfg.x)
+          maxX = Math.max(maxX, cfg.x + (cfg.width || 0))
+          minY = Math.min(minY, cfg.y)
+          maxY = Math.max(maxY, cfg.y + (cfg.height || 0))
+        }
+      })
+      
+      const centerX = (minX + maxX) / 2
+      const centerY = (minY + maxY) / 2
+      const scrollToX = Math.max(0, centerX - wrap.clientWidth / 2)
+      const scrollToY = Math.max(0, centerY - wrap.clientHeight / 2)
+      
+      wrap.scrollLeft = scrollToX
+      wrap.scrollTop = scrollToY
+    }
+  }
+})
 
 const widgetData = ref<Map<string, Map<string, DataPoint[]>>>(new Map())
 const updateInterval = ref<number | null>(null)
@@ -115,6 +158,44 @@ const getAllTopics = () => {
 const showEditor = computed(() => !isFullscreen.value && !showProjectManager.value)
 const showProjectSelector = computed(() => !showProjectManager.value)
 const showProjectManagerBtn = computed(() => !showProjectManager.value)
+
+/** 按项目ID保存编辑模式退出前的滚动位置 */
+const savedScrollPosMap = ref<Map<string, { left: number; top: number }>>(new Map())
+
+/** 编辑模式：进入时恢复上次位置/初始居中，离开时保存位置 */
+watch(showEditor, async (val) => {
+  const pid = currentProjectId.value
+  if (!pid) return
+
+  if (val) {
+    // 进入编辑模式
+    const saved = savedScrollPosMap.value.get(pid)
+    if (saved) {
+      // 有保存的位置则恢复
+      await nextTick()
+      requestAnimationFrame(() => {
+        const w = scrollWrapperRef.value
+        if (!w) return
+        w.scrollLeft = saved.left
+        w.scrollTop = saved.top
+      })
+    } else {
+      // 首次进入：滚到画布中心
+      await nextTick()
+      requestAnimationFrame(() => {
+        const w = scrollWrapperRef.value
+        if (!w) return
+        w.scrollLeft = Math.max(0, (w.scrollWidth - w.clientWidth) / 2)
+        w.scrollTop = Math.max(0, (w.scrollHeight - w.clientHeight) / 2)
+      })
+    }
+  } else {
+    // 离开编辑模式：按当前项目保存位置
+    const wrap = scrollWrapperRef.value
+    if (!wrap) return
+    savedScrollPosMap.value.set(pid, { left: wrap.scrollLeft, top: wrap.scrollTop })
+  }
+})
 
 const headerTitle = computed(() => {
   if (!currentProjectId.value || showProjectManager.value) {
@@ -349,8 +430,28 @@ const handleMessage = (topic: string, message: string) => {
     }
     
     if (widget.type === 'textarea') {
-      const config = widget.config as { themes?: { topic: string }[] }
-      if (config.themes?.some(t => t.topic === topic)) {
+      const config = widget.config as { displayMode?: string; topic?: string; themes?: { topic: string }[] }
+      
+      if (config.displayMode === 'singleTopic' && config.topic === topic) {
+        const values = message.split('/')
+        
+        for (let index = 0; index < values.length; index++) {
+          const lineId = `line-${index + 1}`
+          const data = [...(widgetDataMap.get(lineId) || [])]
+          data.push({
+            timestamp: Date.now(),
+            value: values[index].trim(),
+            themeId: lineId
+          })
+          
+          if (data.length > MAX_DATA_BUFFER) {
+            data.shift()
+          }
+          
+          widgetDataMap.set(lineId, data)
+        }
+        widgetDataUpdated = true
+      } else if (config.themes?.some(t => t.topic === topic)) {
         const data = [...(widgetDataMap.get(topic) || [])]
         data.push({
           timestamp: Date.now(),
@@ -477,6 +578,11 @@ const handleSidebarUpdate = (updates: Record<string, unknown>) => {
 const handleClearWidgetData = (widgetId: string) => {
   widgetData.value.delete(widgetId)
   widgetData.value = new Map(widgetData.value)
+  // 滑动条清空数据：通过配置传递归中信号
+  const widget = currentProject.value?.widgets.find((w: Widget) => w.id === widgetId)
+  if (widget?.type === 'slider') {
+    handleUpdateWidget(widgetId, { _reset: Date.now() } as any)
+  }
 }
 
 const handleSelectWidget = (widgetId: string | null) => {
@@ -570,6 +676,15 @@ const handleOpenProjectManager = () => {
 
 const toggleFullscreen = () => {
   if (!isFullscreen.value) {
+    // 进入全屏前：保存编辑模式的视口中心（画布坐标）
+    const wrap = scrollWrapperRef.value
+    if (wrap) {
+      savedViewCenter.value = {
+        x: wrap.scrollLeft + wrap.clientWidth / 2,
+        y: wrap.scrollTop + wrap.clientHeight / 2
+      }
+    }
+    
     isFullscreen.value = true
     selectedWidgetId.value = null
     showTopBar.value = false
@@ -634,7 +749,30 @@ const handlePlatformConfigConfirm = async (config: PlatformConfig) => {
   await connectToPlatform(config)
 }
 
-watch(() => currentProjectId.value, (newId, oldId) => {
+watch(() => currentProjectId.value, async (newId, oldId) => {
+  // 编辑模式下切换项目：保存旧项目位置，恢复新项目位置
+  if (showEditor.value && oldId && newId && newId !== oldId) {
+    const wrap = scrollWrapperRef.value
+    if (wrap) {
+      // 保存当前项目位置
+      savedScrollPosMap.value.set(oldId, { left: wrap.scrollLeft, top: wrap.scrollTop })
+    }
+    // 恢复新项目位置
+    const saved = savedScrollPosMap.value.get(newId)
+    await nextTick()
+    requestAnimationFrame(() => {
+      const w = scrollWrapperRef.value
+      if (!w) return
+      if (saved) {
+        w.scrollLeft = saved.left
+        w.scrollTop = saved.top
+      } else {
+        w.scrollLeft = Math.max(0, (w.scrollWidth - w.clientWidth) / 2)
+        w.scrollTop = Math.max(0, (w.scrollHeight - w.clientHeight) / 2)
+      }
+    })
+  }
+
   if (newId && newId !== oldId) {
     const project = projects.value.find((p: Project) => p.id === newId)
     if (project?.platformConfig) {
@@ -733,7 +871,7 @@ onUnmounted(() => {
         @add-widget="handleAddWidget" 
       />
       
-      <div class="canvas-scroll-wrapper" :class="{ 'editor-mode': showEditor }">
+      <div ref="scrollWrapperRef" class="canvas-scroll-wrapper" :class="{ 'editor-mode': showEditor }">
         <MainCanvas
           :widgets="currentProject?.widgets || []"
           :selected-widget-id="selectedWidgetId"
@@ -754,6 +892,12 @@ onUnmounted(() => {
         @remove="selectedWidgetId && handleRemoveWidget(selectedWidgetId)"
         @clear-data="selectedWidgetId && handleClearWidgetData(selectedWidgetId)"
       />
+    </div>
+    
+    <!-- 页面水印 -->
+    <div class="watermark">
+      <div class="watermark-version">{{ APP_VERSION }}</div>
+      <div>By—雪菱(mio-kitten)</div>
     </div>
   </div>
 </template>
@@ -787,10 +931,18 @@ onUnmounted(() => {
   min-height: 100%;
 }
 
+/* 全屏模式：画布可滚动，隐藏滚动条，自动居中滚动到组件群 */
+.app-container.fullscreen-mode .canvas-scroll-wrapper {
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.app-container.fullscreen-mode .canvas-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+}
 .app-container.fullscreen-mode .main-canvas {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
+  min-width: 3000px;
+  min-height: 3000px;
 }
 
 /* 编辑模式：画布滚动容器 */
@@ -807,11 +959,32 @@ onUnmounted(() => {
 }
 
 .canvas-scroll-wrapper.editor-mode .main-canvas {
-  min-width: 200%;
-  min-height: 200%;
+  min-width: 3000px;
+  min-height: 3000px;
 }
 
 .app-container.fullscreen-mode:hover {
   cursor: default;
+}
+
+/* 页面水印 */
+.watermark {
+  position: fixed;
+  bottom: 6px;
+  right: 10px;
+  font-size: 12px;
+  color: #c0c0c0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.3px;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.watermark-version {
+  font-size: 11px;
+  color: #d0d0d0;
 }
 </style>

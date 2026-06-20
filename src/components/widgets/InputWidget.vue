@@ -59,19 +59,20 @@ watch(() => props.config.placeholder, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 4px;
 }
 
 .input-container {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  max-width: 300px;
+  min-width: 0;
 }
 
 .input-field {
   flex: 1;
-  padding: 8px 12px;
+  min-width: 0;
+  padding: 6px 10px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 14px;
@@ -88,7 +89,8 @@ watch(() => props.config.placeholder, () => {
 }
 
 .send-btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
+  flex-shrink: 0;
   background: linear-gradient(135deg, #5c9ce6 0%, #4a8fd4 100%);
   border: none;
   border-radius: 4px;

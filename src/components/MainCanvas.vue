@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import type { Widget, DataPoint } from '@/types'
+import { getWidgetMinSize } from '@/utils/widgetMinSize'
 import LineChartWidget from './widgets/LineChartWidget.vue'
 import BarChartWidget from './widgets/BarChartWidget.vue'
 import ButtonWidget from './widgets/ButtonWidget.vue'
@@ -162,8 +163,10 @@ const handleMouseMove = (e: MouseEvent) => {
     const deltaX = e.clientX - resizeStartPos.value.x
     const deltaY = e.clientY - resizeStartPos.value.y
     
-    const newWidth = Math.max(100, Math.min(resizeStartSize.value.width + deltaX, canvasRect.width - 50))
-    const newHeight = Math.max(60, Math.min(resizeStartSize.value.height + deltaY, canvasRect.height - 50))
+    const widget = props.widgets.find(w => w.id === resizingWidgetId.value)
+    const { width: minW, height: minH } = widget ? getWidgetMinSize(widget.type) : { width: 120, height: 80 }
+    const newWidth = Math.max(minW, Math.min(resizeStartSize.value.width + deltaX, canvasRect.width - 50))
+    const newHeight = Math.max(minH, Math.min(resizeStartSize.value.height + deltaY, canvasRect.height - 50))
     
     emit('updateWidget', resizingWidgetId.value, {
       width: newWidth,
@@ -252,6 +255,7 @@ onUnmounted(() => {
         <SliderWidget
           v-else-if="widget.type === 'slider'"
           :config="widget.config"
+          :data="widgetData.get(widget.id) || new Map()"
         />
         <TextWidget
           v-else-if="widget.type === 'text' || widget.type === 'textarea'"
@@ -300,10 +304,11 @@ onUnmounted(() => {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   cursor: se-resize;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23999' d='M14 2l2 2-10 10-2-2 10-10z'/%3E%3C/svg%3E") no-repeat;
+  z-index: 10;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%23999' d='M18 2l2 2-14 14-2-2 14-14z'/%3E%3C/svg%3E") no-repeat;
 }
 
 .widget-resize-handle:hover {
