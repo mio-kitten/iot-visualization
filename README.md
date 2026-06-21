@@ -103,7 +103,7 @@ npm run electron:build
 
 ### 用123云盘下载（V1.0.1）：
 
-[网盘链接（注意可能无法浏览器下载出现流量问题）](https://1842972489.share.123pan.cn/123pan/SJqUTd-Do6l3)
+[网盘链接（注意流量限制 ZIP包体400mb+）](https://1842972489.share.123pan.cn/123pan/SJqUTd-Do6l3)
 > 提取码：NOTH
 
 ---
